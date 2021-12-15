@@ -831,6 +831,28 @@ class PowerBIAPIClient:
             logging.error(f"UpdateReportContent failed for report_id {report_id}!")
             self.force_raise_http_error(response)
 
+    @check_token
+    def get_capacities(self) -> List:
+            url = self.base_url + f"capacities"            
+            headers = {"Content-Type": "application/json", **self.get_auth_header()}
+            response = requests.get(url, headers=headers)                       
+            if response.status_code == HTTP_OK_CODE:
+                return response.json()["value"]                
+            else:
+                logging.error(f"Error Getting Capacities")
+                self.force_raise_http_error(response)
+    
+    @check_token
+    def assign_workspace_id_to_capacity(self, workspace_id: str, capacity_id: str) -> None:
+            url = self.base_url + f"groups/{workspace_id}/AssignToCapacity"            
+            headers = {"Content-Type": "application/json", **self.get_auth_header()}
+            body = { "capacityId": capacity_id}
+            response = requests.post(url, json=body, headers=headers)           
+            if response.status_code == HTTP_OK_CODE:
+                logging.info(f"Workspace id '{workspace_id}' assigned to capacity '{capacity_id}'")
+            else:
+                logging.error(f"Workspace id '{workspace_id}' assignment to capacity '{capacity_id}' failed")
+                self.force_raise_http_error(response)
 
     @check_token
     def generate_token(self, dataset_list=None, reports_list=None, target_workspace_list=None,identities_list=None ):
